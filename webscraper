@@ -1,0 +1,32 @@
+import requests
+from bs4 import BeautifulSoup
+
+#URL = "https://www.axelerate-consulting.com/"
+#page = requests.get(URL)
+
+#soup = BeautifulSoup(page.content, "html.parser")
+#print(soup.prettify())
+
+#Used headers/agent because the request was timed out and asking for an agent. 
+headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
+
+#Determining the URL and creating a beautiful soup
+location = input("what city do you want to look at?:")
+base_url = "https://www.zomato.com"
+search_url = f"{base_url}/{location}/top-restaurants"
+response = requests.get(search_url,headers=headers)
+content = response.content
+soup = BeautifulSoup(content,"html.parser")
+
+#Title of the page
+print()
+print(soup.title.text)
+print()
+
+#Restaurant names
+top_restaurants = soup.find("div", class_ = "sc-bke1zw-0 fIuLDK")
+top_rest = top_restaurants.find_all("div", class_= "sc-lhdg1m-0 bBbbtL")
+print(top_rest)
+
+for i in top_rest:
+    print(i.text)
