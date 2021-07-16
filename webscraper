@@ -11,9 +11,10 @@ from bs4 import BeautifulSoup
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
 
 #Determining the URL and creating a beautiful soup
-location = input("what city do you want to look at?:")
-base_url = "https://www.zomato.com"
-search_url = f"{base_url}/{location}/top-restaurants"
+city = input("what city in the UK do you want to look at?:")
+establishment = "Restaurants"
+base_url = "https://www.yelp.com"
+search_url = f"{base_url}/search?find_desc={establishment}&find_loc={city}%2C%20United%20Kingdom"
 response = requests.get(search_url,headers=headers)
 content = response.content
 soup = BeautifulSoup(content,"html.parser")
@@ -24,8 +25,8 @@ print(soup.title.text)
 print()
 
 #Restaurant names
-top_restaurants = soup.find("div", class_ = "sc-bke1zw-0 fIuLDK")
-top_rest = top_restaurants.find_all("div", class_= "sc-lhdg1m-0 bBbbtL")
+#top_cards = soup.find("div", class_ = " arrange-unit__09f24__eFC_S arrange-unit-fill__09f24__1bMmp border-color--default__09f24__3Epto")
+top_rest = soup.find_all("a", class_= "css-166la90")
 print(top_rest)
 
 for i in top_rest:
