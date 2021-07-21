@@ -1,44 +1,66 @@
-from os import name
+#Import relevant packages
 import requests
 from bs4 import BeautifulSoup
+import numpy as np
 import pandas as pd
-
-#URL = "https://www.axelerate-consulting.com/"
-#page = requests.get(URL)
-
-#soup = BeautifulSoup(page.content, "html.parser")
-#print(soup.prettify())
+from time import sleep
+from random import randint
 
 #Used headers/agent because the request was timed out and asking for an agent. 
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
 
 #Determining the URL and creating a beautiful soup
 city = input("what city in the UK do you want to look at?:")
+date = input("What date do we have today?:")
 establishment = "Restaurants"
 base_url = "https://www.yelp.com"
-search_url = f"{base_url}/search?find_desc={establishment}&find_loc={city}%2C%20United%20Kingdom"
-response = requests.get(search_url,headers=headers)
-content = response.content
-soup = BeautifulSoup(content,"html.parser")
 
-#Title of the page
-print()
-print(soup.title.text)
-print()
-
-#grabs each Restaurant
-top_cards = soup.find_all("div", class_ = "container__09f24__sxa9- hoverable__09f24__3HkY2 margin-t3__09f24__hHZsm margin-b3__09f24__3h89A padding-t3__09f24__1VTAn padding-r3__09f24__11Xv2 padding-b3__09f24__2I83c padding-l3__09f24__1JEx9 border--top__09f24__37VAs border--right__09f24__Z9jGU border--bottom__09f24__3lElq border--left__09f24__akfOa border-color--default__09f24__3Epto")
-
-#creates a list of all restaurants
+#creating the list 
 top_restaurants = []
-for container in top_cards:
-    dataframe = {}
-    dataframe["rest_name"] = container.div.div.div.div.div.div.div.div.div.div.a.img["alt"]
-    dataframe["nr_reviews"] = container.find("span", class_= "css-e81eai").text
-    dataframe["price"] = container.find("span", class_= "priceRange__09f24__2GspP css-xtpg8e").text
-    dataframe["rating"] = container.find("div", class_= "i-stars__09f24___sZu0 i-stars--regular-4-half__09f24__3Qo_8 border-color--default__09f24__3Epto overflow--hidden__09f24__7Mh-7")["aria-label"]
-    top_restaurants.append(dataframe)
-    
+
+#looping through the pages
+for page in range(0,20):
+    search_url = f"{base_url}/search?find_desc={establishment}&find_loc={city}%2C%20United%20Kingdom&start="+ str(page*10)
+    response = requests.get(search_url,headers=headers)
+    content = response.content
+    soup = BeautifulSoup(content,"html.parser")
+    top_cards = soup.find_all("div", class_ = "container__09f24__sxa9- hoverable__09f24__3HkY2 margin-t3__09f24__hHZsm margin-b3__09f24__3h89A padding-t3__09f24__1VTAn padding-r3__09f24__11Xv2 padding-b3__09f24__2I83c padding-l3__09f24__1JEx9 border--top__09f24__37VAs border--right__09f24__Z9jGU border--bottom__09f24__3lElq border--left__09f24__akfOa border-color--default__09f24__3Epto")
+
+    #looping through the categories
+    for container in top_cards:
+        dataframe = {}
+        dataframe["rest_name"] = container.div.div.div.div.div.div.div.div.div.div.a.img["alt"]
+        dataframe["nr_reviews"] = container.find("span", class_= "css-e81eai").text
+        if container.find("span", class_= "priceRange__09f24__2GspP css-xtpg8e"):
+            price = container.find("span", class_= "priceRange__09f24__2GspP css-xtpg8e").text
+        else:
+            price = "None"
+        dataframe["price"] = price
+        #4.5 star rating
+        if container.find("div", class_= "i-stars__09f24___sZu0 i-stars--regular-4-half__09f24__3Qo_8 border-color--default__09f24__3Epto overflow--hidden__09f24__7Mh-7"):
+            rating = container.find("div", class_= "i-stars__09f24___sZu0 i-stars--regular-4-half__09f24__3Qo_8 border-color--default__09f24__3Epto overflow--hidden__09f24__7Mh-7")["aria-label"]
+        #4 star rating
+        elif container.find("div", class_= "i-stars__09f24___sZu0 i-stars--regular-4__09f24__3b-zE border-color--default__09f24__3Epto overflow--hidden__09f24__7Mh-7"):
+            rating = container.find("div", class_= "i-stars__09f24___sZu0 i-stars--regular-4__09f24__3b-zE border-color--default__09f24__3Epto overflow--hidden__09f24__7Mh-7")["aria-label"]
+        #3.5 star rating
+        elif container.find("div", class_= "i-stars__09f24___sZu0 i-stars--regular-3-half__09f24__3Qo_8 border-color--default__09f24__3Epto overflow--hidden__09f24__7Mh-7"):
+            rating = container.find("div", class_= "i-stars__09f24___sZu0 i-stars--regular-3-half__09f24__3Qo_8 border-color--default__09f24__3Epto overflow--hidden__09f24__7Mh-7")["aria-label"]
+        #5 star rating
+        elif container.find("div", class_= "i-stars__09f24___sZu0 i-stars--regular-5__09f24__3Qo_8 border-color--default__09f24__3Epto overflow--hidden__09f24__7Mh-7"):
+            rating = container.find("div", class_= "i-stars__09f24___sZu0 i-stars--regular-5__09f24__3Qo_8 border-color--default__09f24__3Epto overflow--hidden__09f24__7Mh-7")["aria-label"]
+        #3 star rating
+        elif container.find("div", class_= "i-stars__09f24___sZu0 i-stars--regular-3__09f24__3Qo_8 border-color--default__09f24__3Epto overflow--hidden__09f24__7Mh-7"):
+            rating = container.find("div", class_= "i-stars__09f24___sZu0 i-stars--regular-3__09f24__3Qo_8 border-color--default__09f24__3Epto overflow--hidden__09f24__7Mh-7")["aria-label"]
+        #less than 3 star rating
+        else:
+            rating = "< 3 star rating"
+        dataframe["rating"] = rating
+        top_restaurants.append(dataframe)
+
+    sleep(randint(2,10))
+
+print(top_restaurants)
+
 #Create a csv
 df = pd.DataFrame(top_restaurants)
-df.to_csv("yelp_res.csv",index=False)
+df.to_csv(str(date)+"yelp_res.csv",index=False)
