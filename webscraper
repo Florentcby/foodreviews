@@ -1,5 +1,7 @@
+from os import name
 import requests
 from bs4 import BeautifulSoup
+import pandas as pd
 
 #URL = "https://www.axelerate-consulting.com/"
 #page = requests.get(URL)
@@ -24,10 +26,19 @@ print()
 print(soup.title.text)
 print()
 
-#Restaurant names
-#top_cards = soup.find("div", class_ = " arrange-unit__09f24__eFC_S arrange-unit-fill__09f24__1bMmp border-color--default__09f24__3Epto")
-top_rest = soup.find_all("a", class_= "css-166la90")
-print(top_rest)
+#grabs each Restaurant
+top_cards = soup.find_all("div", class_ = "container__09f24__sxa9- hoverable__09f24__3HkY2 margin-t3__09f24__hHZsm margin-b3__09f24__3h89A padding-t3__09f24__1VTAn padding-r3__09f24__11Xv2 padding-b3__09f24__2I83c padding-l3__09f24__1JEx9 border--top__09f24__37VAs border--right__09f24__Z9jGU border--bottom__09f24__3lElq border--left__09f24__akfOa border-color--default__09f24__3Epto")
 
-for i in top_rest:
-    print(i.text)
+#creates a list of all restaurants
+top_restaurants = []
+for container in top_cards:
+    dataframe = {}
+    dataframe["rest_name"] = container.div.div.div.div.div.div.div.div.div.div.a.img["alt"]
+    dataframe["nr_reviews"] = container.find("span", class_= "css-e81eai").text
+    dataframe["price"] = container.find("span", class_= "priceRange__09f24__2GspP css-xtpg8e").text
+    dataframe["rating"] = container.find("div", class_= "i-stars__09f24___sZu0 i-stars--regular-4-half__09f24__3Qo_8 border-color--default__09f24__3Epto overflow--hidden__09f24__7Mh-7")["aria-label"]
+    top_restaurants.append(dataframe)
+    
+#Create a csv
+df = pd.DataFrame(top_restaurants)
+df.to_csv("yelp_res.csv",index=False)
